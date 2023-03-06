@@ -1,5 +1,7 @@
 use actix_web::{web, App, HttpRequest, HttpServer, Responder, HttpResponse};
-use ZeroToProd::run;
+//use ZeroToProd::run;
+use ZeroToProd::startup::run;
+use sqlx::{Connection, PgConnection, PgPool};
 use std::net::TcpListener;
 use ZeroToProd::configuration::get_configuration;
 
@@ -11,10 +13,16 @@ async fn greet(req: HttpRequest) -> impl Responder {
 #[tokio::main]
 async fn main() -> Result<(), std::io::Error> {
     let configuration = get_configuration().expect("Failed to read configuration.");
+    let connection_pool = PgPool::connect(
+        &configuration.database.connection_string()
+    )
+        .await
+        .expect("Failed to connect to Postgres.");
     let address = format!("127.0.0.1:{}",configuration.application_port);
     let listener = TcpListener::bind(address)?;
-    println!("in main");
-    run(listener)?.await
+    //Ok(())
+    //println!("in main");
+    run(listener,connection_pool)?.await
 }
 
 // #[tokio::main]
