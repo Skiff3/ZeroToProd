@@ -4,10 +4,16 @@ use actix_web::{HttpResponse, web};
 use actix_web::web::Data;
 use sqlx::{Connection,Executor, PgConnection, PgPool};
 use sqlx::types::Uuid;
-
+use once_cell::sync::Lazy;
+use ZeroToProd::telemetry::{get_subscriber,init_subscriber};
 use ZeroToProd::configuration::{get_configuration,DatabaseSettings};
 use ZeroToProd::startup::run;
 
+
+static TRACING: Lazy<()> = Lazy::new(|| {
+    let subscriber = get_subscriber("test".into(),"debug".into());
+    init_subscriber(subscriber);
+});
 
 pub struct TestApp{
     pub address: String,
@@ -19,7 +25,6 @@ pub struct TestApp{
 async fn health_check_works(){
     let app = spawn_app().await;
     let client = reqwest::Client::new();
-
     let response = client
         .get(&format!("{}/health_check",&app.address))
         .send()
@@ -81,6 +86,9 @@ async fn subscribe_returns_a_400_when_data_is_missing(){
 }
 
  async fn spawn_app() -> TestApp  {
+     Lazy::force(&TRACING);
+     // let subscriber = get_subscriber("test".into(),"debug".into());
+     // init_subscriber(subscriber);
      let listener = TcpListener::bind("127.0.0.1:0")
          .expect("Failed to bind random port");
      let port = listener.local_addr().unwrap().port();
@@ -115,11 +123,11 @@ pub async fn configure_database(config:&DatabaseSettings) -> PgPool{
     let connection_pool = PgPool::connect(&config.connection_string())
         .await
         .expect("Failed to connect to Postgres");
-    sqlx::migrate!("./migrations")
+    sqlx::migrate!("./migrations")//is the same macro used by sqlx-cli when executing sqlx migrate run - no need to throw bash scripts into the mix to achieve the same result
         .run(&connection_pool)
         .await
         .expect("Failed to migrate the database");
-    connection_pool
+    connection_pool// returns the connection pool
 }
 
 async fn health_check() -> HttpResponse {

@@ -1,9 +1,16 @@
-use actix_web::{web, App, HttpServer,HttpResponse};
+use std::fs::Metadata;
+use actix_web::{web, App, HttpServer, HttpResponse};
 use actix_web::dev::Server;
 use std::net::TcpListener;
 pub mod configuration;
 pub mod routes;
 pub mod startup;
+pub mod telemetry;
+// pub trait Log: Sync + Send {
+//     fn enabled(&self,metadata:&Metadata) -> bool;
+//     //fn log(&self, record: &Record);
+//     fn flush(&self);
+// }
 
 // async fn health_check() -> HttpResponse {
 //     HttpResponse::Ok().finish()
