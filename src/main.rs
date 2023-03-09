@@ -4,6 +4,7 @@ use tracing_log::LogTracer;
 use ZeroToProd::startup::run;
 use sqlx::postgres::PgPool;
 use std::net::TcpListener;
+use secrecy::ExposeSecret;
 //use env_logger::Env;
 use ZeroToProd::telemetry::{get_subscriber, init_subscriber};
 use tracing::Subscriber;
@@ -20,7 +21,7 @@ async fn greet(req: HttpRequest) -> impl Responder {
 #[tokio::main]
 async fn main() -> Result<(), std::io::Error> {
     //env_logger::init();
-    let subscriber = get_subscriber("ZeroToProd".into(),"info".into());
+    let subscriber = get_subscriber("ZeroToProd".into(),"info".into(),std::io::stdout);
     init_subscriber(subscriber);
     //LogTracer::init().expect("Failed to set logger");
     // let env_filter = EnvFilter::try_from_default_env()
@@ -37,7 +38,7 @@ async fn main() -> Result<(), std::io::Error> {
     //env_logger::Builder::from_env(Env::default().default_filter_or("info"));
     let configuration = get_configuration().expect("Failed to read configuration.");
     let connection_pool = PgPool::connect(
-        &configuration.database.connection_string()//configuration
+        &configuration.database.connection_string().expose_secret()//configuration
     )
         .await
         .expect("Failed to connect to Postgres.");

@@ -5,14 +5,31 @@ use actix_web::web::Data;
 use sqlx::{Connection,Executor, PgConnection, PgPool};
 use sqlx::types::Uuid;
 use once_cell::sync::Lazy;
+use secrecy::ExposeSecret;
 use ZeroToProd::telemetry::{get_subscriber,init_subscriber};
 use ZeroToProd::configuration::{get_configuration,DatabaseSettings};
 use ZeroToProd::startup::run;
 
 
 static TRACING: Lazy<()> = Lazy::new(|| {
-    let subscriber = get_subscriber("test".into(),"debug".into());
-    init_subscriber(subscriber);
+    //let subscriber = get_subscriber("test".into(),"debug".into());
+    let default_filter_level = "info".to_string();
+    let subscriber_name = "test".to_string();
+    if std::env::var("TEST_LOG").is_ok() {
+        let subscriber = get_subscriber(
+            subscriber_name,
+            default_filter_level,
+            std::io::stdout
+        );
+        init_subscriber(subscriber);
+    }else{
+        let subscriber = get_subscriber(
+            subscriber_name,
+            default_filter_level,
+            std::io::sink
+        );
+        init_subscriber(subscriber);
+    }
 });
 
 pub struct TestApp{
@@ -113,14 +130,14 @@ async fn subscribe_returns_a_400_when_data_is_missing(){
 
 pub async fn configure_database(config:&DatabaseSettings) -> PgPool{
     let mut connection = PgConnection::connect(
-        &config.connection_string_without_db()
+        &config.connection_string_without_db().expose_secret()
     )
         .await
         .expect("Failed to connect Postgres");
     connection.execute(format!(r#"CREATE DATABASE"{}";"#,config.database_name).as_str())
         .await
         .expect("Failed to create database.");
-    let connection_pool = PgPool::connect(&config.connection_string())
+    let connection_pool = PgPool::connect(&config.connection_string().expose_secret())
         .await
         .expect("Failed to connect to Postgres");
     sqlx::migrate!("./migrations")//is the same macro used by sqlx-cli when executing sqlx migrate run - no need to throw bash scripts into the mix to achieve the same result
