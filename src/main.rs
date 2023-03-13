@@ -1,17 +1,19 @@
 use actix_web::{web, App, HttpRequest, HttpServer, Responder, HttpResponse};
 //use ZeroToProd::run;
 use tracing_log::LogTracer;
-use ZeroToProd::startup::run;
-use sqlx::postgres::PgPool;
+
+use zerotoprod::startup::run;
+use sqlx::postgres::{PgPool, PgPoolOptions};
 use std::net::TcpListener;
 use secrecy::ExposeSecret;
 //use env_logger::Env;
-use ZeroToProd::telemetry::{get_subscriber, init_subscriber};
+use zerotoprod::telemetry::{get_subscriber, init_subscriber};
 use tracing::Subscriber;
 use tracing::subscriber::set_global_default;
 use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};
 use tracing_subscriber::{layer::SubscriberExt, EnvFilter, Registry};
-use ZeroToProd::configuration::get_configuration;
+use zerotoprod::configuration::get_configuration;
+//use zerotoprodero::configuration::get_configuration;
 
 async fn greet(req: HttpRequest) -> impl Responder {
     let name = req.match_info().get("name").unwrap_or("World");
@@ -37,12 +39,12 @@ async fn main() -> Result<(), std::io::Error> {
     // set_global_default(subscriber).expect("Failed to set subscriber");
     //env_logger::Builder::from_env(Env::default().default_filter_or("info"));
     let configuration = get_configuration().expect("Failed to read configuration.");
-    let connection_pool = PgPool::connect(
+    let connection_pool = PgPoolOptions::new().acquire_timeout(std::time::Duration::from_secs(2)).connect_lazy(
         &configuration.database.connection_string().expose_secret()//configuration
     )
-        .await
+        //.await
         .expect("Failed to connect to Postgres.");
-    let address = format!("127.0.0.1:{}",configuration.application_port);
+    let address = format!("{}:{}",configuration.application.host,configuration.application.port);
     let listener = TcpListener::bind(address)?;//TcpListener
     //Ok(())
     //println!("in main");

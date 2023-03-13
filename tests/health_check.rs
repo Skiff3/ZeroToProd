@@ -6,9 +6,10 @@ use sqlx::{Connection,Executor, PgConnection, PgPool};
 use sqlx::types::Uuid;
 use once_cell::sync::Lazy;
 use secrecy::ExposeSecret;
-use ZeroToProd::telemetry::{get_subscriber,init_subscriber};
-use ZeroToProd::configuration::{get_configuration,DatabaseSettings};
-use ZeroToProd::startup::run;
+use zerotoprod::telemetry::{get_subscriber,init_subscriber};
+use zerotoprod::configuration::{get_configuration,DatabaseSettings};
+use zerotoprod::startup::run;
+
 
 
 static TRACING: Lazy<()> = Lazy::new(|| {
