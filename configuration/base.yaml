@@ -8,3 +8,6 @@ database:
   username: "sakibbagewadi"
   password: "Sakib@123"
   database_name: "sakibbagewadi"
+email_client:
+  base_url: "localhost"
+  sender_email: "test@gmail.com"

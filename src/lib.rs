@@ -3,9 +3,13 @@ use actix_web::{web, App, HttpServer, HttpResponse};
 use actix_web::dev::Server;
 use std::net::TcpListener;
 pub mod configuration;
+//pub mod domain;
 pub mod routes;
 pub mod startup;
 pub mod telemetry;
+mod domain;
+pub mod email_client;
+//mod domain;//the import
 // pub trait Log: Sync + Send {
 //     fn enabled(&self,metadata:&Metadata) -> bool;
 //     //fn log(&self, record: &Record);

@@ -5,6 +5,7 @@ use tracing_log::LogTracer;
 use zerotoprod::startup::run;
 use sqlx::postgres::{PgPool, PgPoolOptions};
 use std::net::TcpListener;
+use zerotoprod::email_client::EmailClient;
 use secrecy::ExposeSecret;
 //use env_logger::Env;
 use zerotoprod::telemetry::{get_subscriber, init_subscriber};
@@ -39,16 +40,22 @@ async fn main() -> Result<(), std::io::Error> {
     // set_global_default(subscriber).expect("Failed to set subscriber");
     //env_logger::Builder::from_env(Env::default().default_filter_or("info"));
     let configuration = get_configuration().expect("Failed to read configuration.");
-    let connection_pool = PgPoolOptions::new().acquire_timeout(std::time::Duration::from_secs(2)).connect_lazy(
-        &configuration.database.connection_string().expose_secret()//configuration
-    )
+    let connection_pool = PgPoolOptions::new().acquire_timeout(std::time::Duration::from_secs(2)).connect_lazy_with(
+        configuration.database.with_db()//configuration
+    );
         //.await
-        .expect("Failed to connect to Postgres.");
+        //.expect("Failed to connect to Postgres.");
+    let sender_email = configuration.email_client.sender()
+        .expect("Invalid sender email address");
+    let email_client = EmailClient::new(
+        configuration.email_client.base_url,
+        sender_email,
+    );
     let address = format!("{}:{}",configuration.application.host,configuration.application.port);
     let listener = TcpListener::bind(address)?;//TcpListener
     //Ok(())
     //println!("in main");
-    run(listener,connection_pool)?.await?;
+    run(listener,connection_pool,email_client)?.await?;
     Ok(())//await, connection_pool
 }
 

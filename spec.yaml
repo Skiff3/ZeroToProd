@@ -1,0 +1,41 @@
+#! spec.yaml
+name: zerotoprod-sakib
+region: sgp1
+services:
+  - name: zerotoprod-sakib
+    dockerfile_path: Dockerfile
+    source_dir: .
+    github:
+      branch: master
+      deploy_on_push: true
+      repo: Skiff3/ZeroToProd
+    health_check:
+       http_path: /health_check
+    http_port: 8000
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    routes:
+     - path: /
+    envs:
+      - key: APP_DATABASE__USERNAME
+        scope: RUN_TIME
+        value: ${sakibbagewadi.USERNAME}
+      - key: APP_DATABASE__PASSWORD
+        scope: RUN_TIME
+        value: ${sakibbagewadi.PASSWORD}
+      - key: APP_DATABASE__HOST
+        scope: RUN_TIME
+        value: ${sakibbagewadi.HOSTNAME}
+      - key: APP_DATABASE__PORT
+        scope: RUN_TIME
+        value: ${sakibbagewadi.PORT}
+      - key: APP_DATABASE__DATABASE_NAME
+        scope: RUN_TIME
+        value: ${sakibbagewadi.DATABASE}
+databases:
+  # PG = Postgres
+  - engine: PG
+    name: sakibbagewadi
+    num_nodes: 1
+    size: db-s-dev-database
+    version: "12"
