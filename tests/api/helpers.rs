@@ -8,7 +8,7 @@ use zerotoprod::telemetry::{get_subscriber, init_subscriber};
 
 // Ensure that the `tracing` stack is only initialised once using `once_cell`
 static TRACING: Lazy<()> = Lazy::new(|| {
-    let default_filter_level = "info".to_string();
+    let default_filter_level = "info".to_string();//---->Ythere is comment///''
     let subscriber_name = "test".to_string();
     if std::env::var("TEST_LOG").is_ok() {
         let subscriber = get_subscriber(subscriber_name, default_filter_level, std::io::stdout);
@@ -28,7 +28,7 @@ pub struct TestApp {
 
 /// Confirmation links embedded in the request to the email API.
 pub struct ConfirmationLinks {
-    pub html: reqwest::Url,
+    pub html: reqwest::Url,///''''tt
     pub plain_text: reqwest::Url,
 }
 

@@ -80,7 +80,7 @@ pub fn get_configuration() -> Result<Settings, config::ConfigError> {
     let environment: Environment = std::env::var("APP_ENVIRONMENT")
         .unwrap_or_else(|_| "local".into())
         .try_into()
-        .expect("Failed to parse APP_ENVIRONMENT.");
+        .expect("Failed to parse APP_ENVIRONMENT.");//expect returns.
     let environment_filename = format!("{}.yaml", environment.as_str());
     let settings = config::Config::builder()
         .add_source(config::File::from(
@@ -111,7 +111,7 @@ impl Environment {
     pub fn as_str(&self) -> &'static str {
         match self {
             Environment::Local => "local",
-            Environment::Production => "production",
+            Environment::Production => "production",////
         }
     }
 }
@@ -130,3 +130,11 @@ impl TryFrom<String> for Environment {
         }
     }
 }
+
+// 8.1.3 Summary
+// Control flow (i.e. determine what to do next)
+// Reporting (e.g. investigate, after the fact, what went wrong on)
+
+// Internal (i.e. a function calling another function within our application);
+// At the edge (i.e. an API request that we failed to fulfill).
+
