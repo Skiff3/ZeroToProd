@@ -3,12 +3,15 @@ use sqlx::{Connection, Executor, PgConnection, PgPool};
 use uuid::Uuid;
 use wiremock::MockServer;
 use zerotoprod::configuration::{get_configuration, DatabaseSettings};
-use zerotoprod::startup::{get_connection_pool, Application};
+//use zerotoprod::startup::{get_connection_pool, Application};
+//use zerotoprod::telemetry::{get_subscriber, init_subscriber};
+//use zerotoprod::configuration::{DatabaseSettings, get_configuration};
+use zerotoprod::startup::{Application, get_connection_pool};
 use zerotoprod::telemetry::{get_subscriber, init_subscriber};
 
 // Ensure that the `tracing` stack is only initialised once using `once_cell`
 static TRACING: Lazy<()> = Lazy::new(|| {
-    let default_filter_level = "info".to_string();//---->Ythere is comment///''
+    let default_filter_level = "info".to_string();
     let subscriber_name = "test".to_string();
     if std::env::var("TEST_LOG").is_ok() {
         let subscriber = get_subscriber(subscriber_name, default_filter_level, std::io::stdout);
@@ -28,7 +31,7 @@ pub struct TestApp {
 
 /// Confirmation links embedded in the request to the email API.
 pub struct ConfirmationLinks {
-    pub html: reqwest::Url,///''''tt
+    pub html: reqwest::Url,
     pub plain_text: reqwest::Url,
 }
 
@@ -38,6 +41,15 @@ impl TestApp {
             .post(&format!("{}/subscriptions", &self.address))
             .header("Content-Type", "application/x-www-form-urlencoded")
             .body(body)
+            .send()
+            .await
+            .expect("Failed to execute request.")
+    }
+
+    pub async fn post_newsletters(&self, body: serde_json::Value) -> reqwest::Response {
+        reqwest::Client::new()
+            .post(&format!("{}/newsletters", &self.address))
+            .json(&body)
             .send()
             .await
             .expect("Failed to execute request.")
