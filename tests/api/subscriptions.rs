@@ -9,7 +9,7 @@ async fn subscribe_returns_a_200_for_valid_form_data() {
     let body = "name=le%20guin&email=ursula_le_guin%40gmail.com";
 
     Mock::given(path("/email"))
-        .and(method("POST"))
+        .and(method("POST"))//Post method//
         .respond_with(ResponseTemplate::new(200))
         .mount(&app.email_server)
         .await;
@@ -18,11 +18,11 @@ async fn subscribe_returns_a_200_for_valid_form_data() {
     let response = app.post_subscriptions(body.into()).await;
 
     // Assert
-    assert_eq!(200, response.status().as_u16());
+    assert_eq!(200, response.status().as_u16());//u16---->
 }
 
 #[tokio::test]
-async fn subscribe_persists_the_new_subscriber() {
+async fn subscribe_persists_the_new_subscriber() {//
     // Arrange
     let app = spawn_app().await;
     let body = "name=le%20guin&email=ursula_le_guin%40gmail.com";
@@ -57,7 +57,7 @@ async fn subscribe_fails_if_there_is_a_fatal_database_error() {
 
     // Assert
     assert_eq!(response.status().as_u16(), 500);
-}
+}//
 
 #[tokio::test]
 async fn subscribe_sends_a_confirmation_email_for_valid_data() {

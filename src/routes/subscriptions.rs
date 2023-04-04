@@ -13,12 +13,12 @@ use uuid::Uuid;
 
 #[derive(serde::Deserialize)]
 pub struct FormData {
-    email: String,
+    email: String,//string
     name: String,
 }
 
 impl TryFrom<FormData> for NewSubscriber {
-    type Error = String;
+    type Error = String;//Error in the type of string
 
     fn try_from(value: FormData) -> Result<Self, Self::Error> {
         let name = SubscriberName::parse(value.name)?;
@@ -32,10 +32,10 @@ pub enum SubscribeError {
     #[error("{0}")]
     ValidationError(String),
     #[error(transparent)]
-    UnexpectedError(#[from] anyhow::Error),
+    UnexpectedError(#[from] anyhow::Error),//unexpected error
 }
 
-impl std::fmt::Debug for SubscribeError {
+impl std::fmt::Debug for SubscribeError {//std::fmt::Debug??
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         error_chain_fmt(self, f)
     }
@@ -63,7 +63,7 @@ pub async fn subscribe(
     pool: web::Data<PgPool>,
     email_client: web::Data<EmailClient>,
     base_url: web::Data<ApplicationBaseUrl>,
-) -> Result<HttpResponse, SubscribeError> {
+) -> Result<HttpResponse, SubscribeError> {//10.6.4.5
     let new_subscriber = form.0.try_into().map_err(SubscribeError::ValidationError)?;
     let mut transaction = pool
         .begin()
@@ -153,11 +153,11 @@ pub async fn insert_subscriber(
 #[tracing::instrument(
     name = "Store subscription token in the database",
     skip(subscription_token, transaction)
-)]
+)]//skip the subscription_token & transaction.
 pub async fn store_token(
     transaction: &mut Transaction<'_, Postgres>,
     subscriber_id: Uuid,
-    subscription_token: &str,
+    subscription_token: &str,//subscription token--->&str
 ) -> Result<(), StoreTokenError> {
     sqlx::query!(
         r#"

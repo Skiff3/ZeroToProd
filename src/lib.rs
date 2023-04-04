@@ -1,42 +1,12 @@
-use std::fs::Metadata;
-use actix_web::{web, App, HttpServer, HttpResponse};
-use actix_web::dev::Server;
-use std::net::TcpListener;
+pub mod authentications;
 pub mod configuration;
-//pub mod domain;
+pub mod domain;
+pub mod email_client;
 pub mod routes;
+pub mod session_state;
 pub mod startup;
 pub mod telemetry;
-mod domain;
-pub mod email_client;
-//mod domain;//the import
-// pub trait Log: Sync + Send {
-//     fn enabled(&self,metadata:&Metadata) -> bool;
-//     //fn log(&self, record: &Record);
-//     fn flush(&self);
-// }
-
-// async fn health_check() -> HttpResponse {
-//     HttpResponse::Ok().finish()
-// }
-
-// #[derive(serde::Deserialize)]
-// struct FormData {
-//     email: String,
-//     name: String
-// }
-
-// async fn subscribe(_form: web::Form<FormData>) -> HttpResponse{
-//     HttpResponse::Ok().finish()
-// }
-
-// pub fn run(listener: TcpListener) -> Result<Server, std::io::Error> {
-//     let server = HttpServer::new(|| {
-//         App::new()
-//             .route("/health_check", web::get().to(health_check))
-//             .route("/subscriptions", web::post().to(subscribe))
-//     })
-//         .listen(listener)?
-//             .run();
-//         Ok(server)
-// }
+pub mod utils;
+mod authentication;
+pub mod idempotency;
+pub mod issue_delivery_worker;

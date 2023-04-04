@@ -1,4 +1,5 @@
 use crate::domain::SubscriberEmail;
+use crate::email_client::EmailClient;
 use secrecy::{ExposeSecret, Secret};
 use serde_aux::field_attributes::deserialize_number_from_string;
 use sqlx::postgres::{PgConnectOptions, PgSslMode};
@@ -10,6 +11,7 @@ pub struct Settings {
     pub database: DatabaseSettings,
     pub application: ApplicationSettings,
     pub email_client: EmailClientSettings,
+    pub redis_uri: Secret<String>,
 }
 
 #[derive(serde::Deserialize, Clone)]
@@ -18,6 +20,7 @@ pub struct ApplicationSettings {
     pub port: u16,
     pub host: String,
     pub base_url: String,
+    pub hmac_secret: Secret<String>,
 }
 
 #[derive(serde::Deserialize, Clone)]
@@ -58,10 +61,22 @@ pub struct EmailClientSettings {
     pub base_url: String,
     pub sender_email: String,
     pub authorization_token: Secret<String>,
+    #[serde(deserialize_with = "deserialize_number_from_string")]
     pub timeout_milliseconds: u64,
 }
 
 impl EmailClientSettings {
+    pub fn client(self) -> EmailClient {
+        let sender_email = self.sender().expect("Invalid sender email address.");
+        let timeout = self.timeout();
+        EmailClient::new(
+            self.base_url,
+            sender_email,
+            self.authorization_token,
+            timeout,
+        )
+    }
+
     pub fn sender(&self) -> Result<SubscriberEmail, String> {
         SubscriberEmail::parse(self.sender_email.clone())
     }
@@ -80,7 +95,7 @@ pub fn get_configuration() -> Result<Settings, config::ConfigError> {
     let environment: Environment = std::env::var("APP_ENVIRONMENT")
         .unwrap_or_else(|_| "local".into())
         .try_into()
-        .expect("Failed to parse APP_ENVIRONMENT.");//expect returns.
+        .expect("Failed to parse APP_ENVIRONMENT.");
     let environment_filename = format!("{}.yaml", environment.as_str());
     let settings = config::Config::builder()
         .add_source(config::File::from(
@@ -111,7 +126,7 @@ impl Environment {
     pub fn as_str(&self) -> &'static str {
         match self {
             Environment::Local => "local",
-            Environment::Production => "production",////
+            Environment::Production => "production",
         }
     }
 }
@@ -130,11 +145,3 @@ impl TryFrom<String> for Environment {
         }
     }
 }
-
-// 8.1.3 Summary
-// Control flow (i.e. determine what to do next)
-// Reporting (e.g. investigate, after the fact, what went wrong on)
-
-// Internal (i.e. a function calling another function within our application);
-// At the edge (i.e. an API request that we failed to fulfill).
-
